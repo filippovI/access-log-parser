@@ -22,7 +22,7 @@ public class Statistics {
         return this.nonExistentSites;
     }
 
-    public HashSet<String> existingSites(HashMap<String, Integer> listSites) {
+    public HashSet<String> addEntryExistingSites(HashMap<String, Integer> listSites) {
         for (String siteName : listSites.keySet()) {
             if (!siteName.trim().isEmpty() && listSites.get(siteName) == 200)
                 this.existingSites.add(siteName);
