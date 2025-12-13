@@ -19,7 +19,7 @@ public class StatisticsNew {
 
     public HashSet<String> addEntryNonExistingSites() {
         for (String siteName : site.getPagesStatus().keySet()) {
-            if (!siteName.trim().isEmpty() && site.getPagesStatus().get(siteName) == 404)
+            if (site.getPagesStatus().get(siteName) == 404)
                 this.nonExistentSites.add(siteName);
         }
         return this.nonExistentSites;
@@ -27,7 +27,7 @@ public class StatisticsNew {
 
     public HashSet<String> addEntryExistingSites() {
         for (String siteName : site.getPagesStatus().keySet()) {
-            if (!siteName.trim().isEmpty() && site.getPagesStatus().get(siteName) == 200)
+            if (site.getPagesStatus().get(siteName) == 200)
                 this.existingSites.add(siteName);
         }
         return this.existingSites;
