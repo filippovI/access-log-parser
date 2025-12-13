@@ -8,6 +8,7 @@ public class StatisticsNew {
     private final HashMap<String, Integer> BowserCountMap;
     private final Site site;
 
+
     public StatisticsNew(Site site) {
         this.existingSites = new HashSet<>();
         this.nonExistentSites = new HashSet<>();

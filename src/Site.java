@@ -82,4 +82,5 @@ public class Site {
     public List<String> getUsersBrowsers() {
         return this.usersBrowsers;
     }
+
 }
