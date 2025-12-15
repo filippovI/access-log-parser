@@ -1,5 +1,5 @@
 public class Parrot extends Bird {
-    final String text;
+    private final String text;
 
     public Parrot(String text) {
         if (text == null || text.trim().isEmpty()) throw new IllegalArgumentException("text must be not null and empty");
