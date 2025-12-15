@@ -1,14 +1,16 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class Test {
     public static void main(String[] args) {
-        Point p = new Point(3,4);
-        Circle cl = new Circle(p, 4);
-        Quadrate qd = new Quadrate(p, 0);
-        Rectangle rc = new Rectangle(p, 4,5);
-        System.out.println(cl.getArea());
-        System.out.println(qd.getArea());
-        System.out.println(rc.getArea());
+        Pointt pt = new Pointt.PointtBuilder(2)
+                .setY(3)
+                .setZ(5)
+                .setColor("Green")
+                .setTime("12:00")
+                .build();
+        System.out.println(pt.getCharacteristics());
+
     }
 }
