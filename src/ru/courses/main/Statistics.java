@@ -1,3 +1,5 @@
+package ru.courses.main;
+
 import java.util.HashMap;
 import java.util.HashSet;
 

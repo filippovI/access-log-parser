@@ -1,3 +1,5 @@
+package ru.courses.main;
+
 import java.io.File;
 import java.util.Scanner;
 
