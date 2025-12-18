@@ -29,7 +29,7 @@ public class Main {
                     while ((line = reader.readLine()) != null) {
                         int length = line.length();
                         if (length > 1024)
-                            throw new MaximumLengthExeption("Длина строки в файле превышает 1024 символа\n" +
+                            throw new MaximumLengthException("Длина строки в файле превышает 1024 символа\n" +
                                     "Длина некорректной строки: " + length);
                         if (length > maxLength) maxLength = length;
                         if (length < minLength) minLength = length;
