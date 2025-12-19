@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Main {
     public static void main(String[] args) {
@@ -26,19 +28,33 @@ public class Main {
                     int sumLineLength = 0;
                     int maxLength = 0;
                     int minLength = Integer.MAX_VALUE;
+                    int yandexBotCount = 0;
+                    int googleBotCount = 0;
                     while ((line = reader.readLine()) != null) {
                         int length = line.length();
                         if (length > 1024)
                             throw new MaximumLengthException("Длина строки в файле превышает 1024 символа\n" +
                                     "Длина некорректной строки: " + length);
+
+                        String[] parts = firstBrackets(line).split(";");
+                        if (parts.length >= 2 && parts[1].trim().indexOf('/') != -1) {
+                            String botName = parts[1].trim().substring(0, parts[1].trim().indexOf('/'));
+                            System.out.println(botName);
+                            if (botName.equalsIgnoreCase("yandexBot")) yandexBotCount ++;
+                            if (botName.equalsIgnoreCase("googleBot")) googleBotCount ++;
+                         }
+
                         if (length > maxLength) maxLength = length;
                         if (length < minLength) minLength = length;
-                        sumLineLength ++;
+                        sumLineLength++;
                     }
-                    if (sumLineLength > 0)
-                        System.out.printf("Общее количество строк в файле: %s\n" +
-                            "Длина самой длинной строки: %s\n" +
-                            "Длина самой короткой строки: %s\n", sumLineLength, maxLength, minLength);
+                    if (sumLineLength > 0) {
+                        System.out.printf("Общее количество строк в файле: %s\n", sumLineLength);
+                        System.out.println("Количество запросов от yandexBot относительно общего числа запросов: "
+                                + (double) yandexBotCount / sumLineLength);
+                        System.out.println("Количество запросов от googleBot относительно общего числа запросов: "
+                                + (double) googleBotCount / sumLineLength);
+                    }
                     else System.out.println("Файл пустой");
                 } catch (Exception ex) {
                     ex.printStackTrace();
@@ -52,5 +68,14 @@ public class Main {
                 System.out.println("Такого файла или директории не существует");
             System.out.println("----------------------------------------");
         }
+    }
+
+    public static String firstBrackets(String line) {
+        Pattern pattern = Pattern.compile("\\((.*?)\\)"); //
+        Matcher matcher = pattern.matcher(line);
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+        return "";
     }
 }
