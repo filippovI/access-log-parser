@@ -33,7 +33,7 @@ public class Main {
                                     "Длина некорректной строки: " + length);
                         if (length > maxLength) maxLength = length;
                         if (length < minLength) minLength = length;
-                        sumLineLength += length;
+                        sumLineLength ++;
                     }
                     if (sumLineLength > 0)
                         System.out.printf("Общее количество строк в файле: %s\n" +
