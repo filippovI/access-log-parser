@@ -35,9 +35,11 @@ public class Main {
                         if (length < minLength) minLength = length;
                         sumLineLength += length;
                     }
-                    System.out.printf("Общее количество строк в файле: %s\n" +
+                    if (sumLineLength > 0)
+                        System.out.printf("Общее количество строк в файле: %s\n" +
                             "Длина самой длинной строки: %s\n" +
                             "Длина самой короткой строки: %s\n", sumLineLength, maxLength, minLength);
+                    else System.out.println("Файл пустой");
                     // code here
                 } catch (Exception ex) {
                     ex.printStackTrace();
