@@ -43,6 +43,7 @@ public class Main {
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
+
                 //Если не файл, проверяем, что это директория
             } else if (isDirectory)
                 System.out.println("Это путь к директории");
