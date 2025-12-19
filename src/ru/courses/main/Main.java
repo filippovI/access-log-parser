@@ -3,9 +3,13 @@ package ru.courses.main;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class Main {
     public static void main(String[] args) {
@@ -25,7 +29,7 @@ public class Main {
                     FileReader fileReader = new FileReader(path);
                     BufferedReader reader = new BufferedReader(fileReader);
                     String line;
-                    int sumLineLength = 0;
+                    int sumLine = 0;
                     int maxLength = 0;
                     int minLength = Integer.MAX_VALUE;
                     int yandexBotCount = 0;
@@ -36,26 +40,27 @@ public class Main {
                             throw new MaximumLengthException("Длина строки в файле превышает 1024 символа\n" +
                                     "Длина некорректной строки: " + length);
 
-                        String[] parts = firstBrackets(line).split(";");
-                        if (parts.length >= 2 && parts[1].trim().indexOf('/') != -1) {
-                            String botName = parts[1].trim().substring(0, parts[1].trim().indexOf('/'));
-                            System.out.println(botName);
-                            if (botName.equalsIgnoreCase("yandexBot")) yandexBotCount ++;
-                            if (botName.equalsIgnoreCase("googleBot")) googleBotCount ++;
-                         }
+                        String botName = findBrackets(line)
+                                .stream()
+                                .filter(i -> i.toLowerCase().contains("googlebot") || i.toLowerCase().contains("yandexbot"))
+                                .map(String::trim)
+                                .map(i -> i.substring(0, i.indexOf("/")))
+                                .collect(Collectors.joining());
+                        if (botName.equalsIgnoreCase("yandexBot")) yandexBotCount++;
+                        if (botName.equalsIgnoreCase("googleBot")) googleBotCount++;
+
 
                         if (length > maxLength) maxLength = length;
                         if (length < minLength) minLength = length;
-                        sumLineLength++;
+                        sumLine++;
                     }
-                    if (sumLineLength > 0) {
-                        System.out.printf("Общее количество строк в файле: %s\n", sumLineLength);
+                    if (sumLine > 0) {
+                        System.out.printf("Общее количество строк в файле: %s\n", sumLine);
                         System.out.println("Количество запросов от yandexBot относительно общего числа запросов: "
-                                + (double) yandexBotCount / sumLineLength);
+                                + (double) yandexBotCount / sumLine);
                         System.out.println("Количество запросов от googleBot относительно общего числа запросов: "
-                                + (double) googleBotCount / sumLineLength);
-                    }
-                    else System.out.println("Файл пустой");
+                                + (double) googleBotCount / sumLine);
+                    } else System.out.println("Файл пустой");
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
@@ -70,12 +75,13 @@ public class Main {
         }
     }
 
-    public static String firstBrackets(String line) {
+    public static List<String> findBrackets(String line) {
+        List<String> brackets = new ArrayList<>();
         Pattern pattern = Pattern.compile("\\((.*?)\\)"); //
         Matcher matcher = pattern.matcher(line);
-        if (matcher.find()) {
-            return matcher.group(1);
+        while (matcher.find()) {
+            brackets.addAll(Arrays.asList(matcher.group(1).split(";")));
         }
-        return "";
+        return brackets;
     }
 }
