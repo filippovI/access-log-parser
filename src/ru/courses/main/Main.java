@@ -40,7 +40,6 @@ public class Main {
                             "Длина самой длинной строки: %s\n" +
                             "Длина самой короткой строки: %s\n", sumLineLength, maxLength, minLength);
                     else System.out.println("Файл пустой");
-                    // code here
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
