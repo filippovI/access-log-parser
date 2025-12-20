@@ -1,0 +1,146 @@
+package ru.courses.main.log;
+
+import ru.courses.main.enums.HttpMethod;
+import ru.courses.main.exceptions.LogEntryException;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+public class LogEntry {
+    private final String ipAddress, referer, requestPath;
+    private final LocalDateTime time;
+    private final HttpMethod requestMethod;
+    private final UserAgent userAgent;
+    private final int statusCode, dataSize;
+    private static final DateTimeFormatter TIME_PATTERN = DateTimeFormatter.ofPattern("dd/MMM/yyyy:HH:mm:ss Z", Locale.ENGLISH);
+    private static final Pattern LOG_PATTERN = Pattern.compile(
+            "(?<ipAddress>\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})"
+                    + "[^\"]*"
+                    + "\\[(?<datetime>\\d{2}/[A-Za-z]{3}/\\d{4}:\\d{2}:\\d{2}:\\d{2}\\s[+\\-]\\d{4})]"
+                    + "\\s+"
+                    + "\"(?<requestMethod>[A-Z]+)\\s(?<requestPath>[^\"\\s]+)\\sHTTP/\\d\\.\\d\""
+                    + "\\s+"
+                    + "(?<statusCode>\\d{3})"
+                    + "\\s+"
+                    + "(?<responseSize>\\d+|-)"
+                    + "\\s+"
+                    + "\"(?<referer>[^\"]*)\""
+                    + "\\s"
+                    + "\"(?<userAgent>([^\"]*))\"");
+
+    private LogEntry(String ipAddress, String referer, String requestPath, LocalDateTime time,
+                     HttpMethod requestMethod, UserAgent userAgent, int statusCode, int dataSize) {
+        this.ipAddress = ipAddress;
+        this.referer = referer;
+        this.requestPath = requestPath;
+        this.time = time;
+        this.requestMethod = requestMethod;
+        this.userAgent = userAgent;
+        this.statusCode = statusCode;
+        this.dataSize = dataSize;
+    }
+
+    public static LogEntry fromString(String line) {
+        if (line != null && !line.isEmpty()) {
+            String ipAddress, requestPath, referer;
+            LocalDateTime time;
+            int statusCode, dataSize;
+            UserAgent userAgent;
+            HttpMethod requestMethod;
+            try {
+                Matcher matcher = LOG_PATTERN.matcher(line);
+                if (matcher.find()) {
+                    ipAddress = matcher.group("ipAddress");
+                    time = LocalDateTime.parse(matcher.group("datetime"), TIME_PATTERN);
+                    requestMethod = HttpMethod.fromText(matcher.group("requestMethod"));
+                    requestPath = matcher.group("requestPath");
+                    statusCode = Integer.parseInt(matcher.group("statusCode"));
+                    dataSize = Integer.parseInt(matcher.group("responseSize"));
+                    referer = matcher.group("referer");
+                    userAgent = UserAgent.fromString(matcher.group("userAgent"));
+                    return new LogEntry(ipAddress, referer, requestPath, time, requestMethod, userAgent, statusCode, dataSize);
+                }
+            } catch (NumberFormatException ex) {
+                throw new LogEntryException("Не удалось преобразовать строку в Integer", ex);
+            } catch (IllegalArgumentException ex) {
+                throw new LogEntryException("Не удалось найти group() в matcher", ex);
+            } catch (DateTimeParseException ex) {
+                throw new LogEntryException("Неверный формат даты", ex);
+            } catch (Exception ex) {
+                throw new LogEntryException("Ошибка инициализации параметров", ex);
+            }
+        }
+        return null;
+    }
+
+    public String getIpAddress() {
+        return ipAddress;
+    }
+
+    public String getReferer() {
+        return referer;
+    }
+
+    public String getPath() {
+        return requestPath;
+    }
+
+    public LocalDateTime getTime() {
+        return time;
+    }
+
+    public HttpMethod getMethod() {
+        return requestMethod;
+    }
+
+    public UserAgent getUserAgent() {
+        return userAgent;
+    }
+
+    public int getStatusCode() {
+        return statusCode;
+    }
+
+    public int getDataSize() {
+        return dataSize;
+    }
+
+    @Override
+    public String toString() {
+        return "LogEntry{" +
+                "ipAddress='" + ipAddress + '\'' +
+                ", referer='" + referer + '\'' +
+                ", requestPath='" + requestPath + '\'' +
+                ", time=" + time +
+                ", requestMethod=" + requestMethod.getMethodName() +
+                ", userAgent=" + userAgent +
+                ", statusCode=" + statusCode +
+                ", dataSize=" + dataSize +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        LogEntry logEntry = (LogEntry) o;
+        return statusCode == logEntry.statusCode
+                && dataSize == logEntry.dataSize
+                && Objects.equals(ipAddress, logEntry.ipAddress)
+                && Objects.equals(referer, logEntry.referer)
+                && Objects.equals(requestPath, logEntry.requestPath)
+                && Objects.equals(time, logEntry.time)
+                && requestMethod.getMethodName().equals(logEntry.requestMethod.getMethodName())
+                && Objects.equals(userAgent, logEntry.userAgent);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(ipAddress, referer, requestPath, time, requestMethod, userAgent, statusCode, dataSize);
+    }
+}
