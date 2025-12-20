@@ -11,14 +11,18 @@ public class Statistics {
     private LocalDateTime minTime;
     private LocalDateTime maxTime;
     private final HashSet<String> existSites;
-    private final HashMap<String, Integer> operationSystemFrequency;
+    private final HashSet<String> noExistSites;
+    private final HashMap<String, Integer> operationSystemsFrequency;
+    private final HashMap<String, Integer> browsersFrequency;
 
     public Statistics() {
         this.totalTraffic = 0;
         this.minTime = LocalDateTime.MAX;
         this.maxTime = LocalDateTime.MIN;
         this.existSites = new HashSet<>();
-        this.operationSystemFrequency = new HashMap<>();
+        this.operationSystemsFrequency = new HashMap<>();
+        this.noExistSites = new HashSet<>();
+        this.browsersFrequency = new HashMap<>();
     }
 
     public void addEntry(LogEntry log) {
@@ -26,12 +30,23 @@ public class Statistics {
         if (log.getTime().isBefore(this.minTime)) this.minTime = log.getTime();
         if (log.getTime().isAfter(this.maxTime)) this.maxTime = log.getTime();
         if (log.getStatusCode() == 200) this.existSites.add(log.getPath());
+        if (log.getStatusCode() == 404) this.existSites.add(log.getPath());
 
         String operationSystemName = log.getUserAgent().getOperationSystem();
-        if (!operationSystemFrequency.containsKey(operationSystemName))
-            operationSystemFrequency.put(operationSystemName, 1);
-        else
-            operationSystemFrequency.put(operationSystemName, operationSystemFrequency.get(operationSystemName + 1));
+        if (operationSystemName != null && !operationSystemName.isEmpty()) {
+            if (!operationSystemsFrequency.containsKey(operationSystemName))
+                operationSystemsFrequency.put(operationSystemName, 1);
+            else
+                operationSystemsFrequency.put(operationSystemName, operationSystemsFrequency.get(operationSystemName + 1));
+        }
+
+        String browserName = log.getUserAgent().getBrowser();
+        if (browserName != null && !browserName.isEmpty()) {
+            if (!browsersFrequency.containsKey(browserName))
+                browsersFrequency.put(browserName, 1);
+            else
+                browsersFrequency.put(browserName, browsersFrequency.get(browserName + 1));
+        }
     }
 
     public double getTrafficRate() {
@@ -59,18 +74,42 @@ public class Statistics {
         return existSites;
     }
 
-    public HashMap<String, Double> getOperationSystemFrequency() {
+    public HashSet<String> getNoExistSites() {
+        return noExistSites;
+    }
+
+    public HashMap<String, Double> getOperationSystemsFrequency() {
+        return getFrequency(operationSystemsFrequency);
+    }
+
+    public HashMap<String, Double> getBrowsersFrequency() {
+        return getFrequency(browsersFrequency);
+    }
+
+    private HashMap<String, Double> getFrequency(HashMap<String, Integer> map) {
         HashMap<String, Double> result = new HashMap<>();
-        int sumOS = operationSystemFrequency
+        int sumValues = map
                 .values()
                 .stream()
                 .mapToInt(Integer::intValue)
                 .sum();
 
-        operationSystemFrequency.forEach((k, v) -> result.put(k, (double) v / sumOS));
+        map.forEach((k, v) -> result.put(k, (double) v / sumValues));
         return result;
     }
 
+    @Override
+    public String toString() {
+        return "Statistics{" +
+                "totalTraffic=" + totalTraffic +
+                ", minTime=" + minTime +
+                ", maxTime=" + maxTime +
+                ", existSites=" + existSites +
+                ", noExistSites=" + noExistSites +
+                ", operationSystemsFrequency=" + operationSystemsFrequency +
+                ", browsersFrequency=" + browsersFrequency +
+                '}';
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -87,12 +126,4 @@ public class Statistics {
         return Objects.hash(totalTraffic, minTime, maxTime);
     }
 
-    @Override
-    public String toString() {
-        return "Statistics{" +
-                "totalTraffic=" + totalTraffic +
-                ", minTime=" + minTime +
-                ", maxTime=" + maxTime +
-                '}';
-    }
 }
