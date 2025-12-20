@@ -47,23 +47,18 @@ public class LogEntry {
 
     public static LogEntry fromString(String line) {
         if (line != null && !line.isEmpty()) {
-            String ipAddress, requestPath, referer;
-            LocalDateTime time;
-            int statusCode, dataSize;
-            UserAgent userAgent;
-            HttpMethod requestMethod;
             try {
                 Matcher matcher = LOG_PATTERN.matcher(line);
                 if (matcher.find()) {
-                    ipAddress = matcher.group("ipAddress");
-                    time = LocalDateTime.parse(matcher.group("datetime"), TIME_PATTERN);
-                    requestMethod = HttpMethod.fromText(matcher.group("requestMethod"));
-                    requestPath = matcher.group("requestPath");
-                    statusCode = Integer.parseInt(matcher.group("statusCode"));
-                    dataSize = Integer.parseInt(matcher.group("responseSize"));
-                    referer = matcher.group("referer");
-                    userAgent = UserAgent.fromString(matcher.group("userAgent"));
-                    return new LogEntry(ipAddress, referer, requestPath, time, requestMethod, userAgent, statusCode, dataSize);
+                    return new LogEntry(
+                            matcher.group("ipAddress"),
+                            matcher.group("referer"),
+                            matcher.group("requestPath"),
+                            LocalDateTime.parse(matcher.group("datetime"), TIME_PATTERN),
+                            HttpMethod.fromText(matcher.group("requestMethod")),
+                            UserAgent.fromString(matcher.group("userAgent")),
+                            Integer.parseInt(matcher.group("statusCode")),
+                            Integer.parseInt(matcher.group("responseSize")));
                 }
             } catch (NumberFormatException ex) {
                 throw new LogEntryException("Не удалось преобразовать строку в Integer", ex);
