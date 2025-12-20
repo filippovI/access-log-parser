@@ -1,5 +1,6 @@
-package ru.courses.main;
+package ru.courses.main.log;
 
+import ru.courses.main.enums.HttpMethod;
 import ru.courses.main.exceptions.LogEntryException;
 
 import java.time.LocalDateTime;

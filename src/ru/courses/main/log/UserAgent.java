@@ -1,4 +1,4 @@
-package ru.courses.main;
+package ru.courses.main.log;
 
 import java.util.*;
 import java.util.regex.Matcher;

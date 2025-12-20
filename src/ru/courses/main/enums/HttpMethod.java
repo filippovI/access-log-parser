@@ -1,4 +1,4 @@
-package ru.courses.main;
+package ru.courses.main.enums;
 
 import java.util.Objects;
 

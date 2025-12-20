@@ -1,4 +1,4 @@
-package ru.courses.main;
+package ru.courses.main.log;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
