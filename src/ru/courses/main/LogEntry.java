@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -103,5 +104,25 @@ public class LogEntry {
                 ", statusCode=" + statusCode +
                 ", dataSize=" + dataSize +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        LogEntry logEntry = (LogEntry) o;
+        return statusCode == logEntry.statusCode
+                && dataSize == logEntry.dataSize
+                && Objects.equals(ipAddress, logEntry.ipAddress)
+                && Objects.equals(referer, logEntry.referer)
+                && Objects.equals(requestPath, logEntry.requestPath)
+                && Objects.equals(time, logEntry.time)
+                && requestMethod.getMethodName().equals(logEntry.requestMethod.getMethodName())
+                && Objects.equals(userAgent, logEntry.userAgent);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(ipAddress, referer, requestPath, time, requestMethod, userAgent, statusCode, dataSize);
     }
 }
