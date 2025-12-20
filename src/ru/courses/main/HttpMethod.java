@@ -9,7 +9,8 @@ public enum HttpMethod {
     PATCH("PATCH"),
     DELETE("DELETE");
 
-    final String methodName;
+    private final String methodName;
+
     HttpMethod(String methodName) {
         this.methodName = methodName;
     }
@@ -20,10 +21,10 @@ public enum HttpMethod {
                 return op;
             }
         }
-        throw new IllegalArgumentException("Метода "+ httpMethod + " не существует");
+        throw new IllegalArgumentException("Метода " + httpMethod + " не существует");
     }
 
     public String getMethodName() {
-        return methodName;
+        return this.methodName;
     }
 }

@@ -11,12 +11,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class LogEntry {
-    String ipAddress, referer, requestPath;
-    LocalDateTime time;
-    HttpMethod requestMethod;
-    UserAgent userAgent;
-    int statusCode;
-    int dataSize;
+    private final String ipAddress, referer, requestPath;
+    private final LocalDateTime time;
+    private final HttpMethod requestMethod;
+    private final UserAgent userAgent;
+    private final int statusCode, dataSize;
     private static final DateTimeFormatter TIME_PATTERN = DateTimeFormatter.ofPattern("dd/MMM/yyyy:HH:mm:ss Z", Locale.ENGLISH);
     private static final Pattern LOG_PATTERN = Pattern.compile(
             "(?<ipAddress>\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})"
@@ -33,19 +32,37 @@ public class LogEntry {
                     + "\\s"
                     + "\"(?<userAgent>([^\"]*))\"");
 
-    public LogEntry(String line) {
+    private LogEntry(String ipAddress, String referer, String requestPath, LocalDateTime time,
+                     HttpMethod requestMethod, UserAgent userAgent, int statusCode, int dataSize) {
+        this.ipAddress = ipAddress;
+        this.referer = referer;
+        this.requestPath = requestPath;
+        this.time = time;
+        this.requestMethod = requestMethod;
+        this.userAgent = userAgent;
+        this.statusCode = statusCode;
+        this.dataSize = dataSize;
+    }
+
+    public static LogEntry fromString(String line) {
         if (line != null && !line.isEmpty()) {
+            String ipAddress, requestPath, referer;
+            LocalDateTime time;
+            int statusCode, dataSize;
+            UserAgent userAgent;
+            HttpMethod requestMethod;
             try {
                 Matcher matcher = LOG_PATTERN.matcher(line);
                 if (matcher.find()) {
-                    this.ipAddress = matcher.group("ipAddress");
-                    this.time = LocalDateTime.parse(matcher.group("datetime"), TIME_PATTERN);
-                    this.requestMethod = HttpMethod.fromText(matcher.group("requestMethod"));
-                    this.requestPath = matcher.group("requestPath");
-                    this.statusCode = Integer.parseInt(matcher.group("statusCode"));
-                    this.dataSize = Integer.parseInt(matcher.group("responseSize"));
-                    this.referer = matcher.group("referer");
-                    this.userAgent = new UserAgent(matcher.group("userAgent"));
+                    ipAddress = matcher.group("ipAddress");
+                    time = LocalDateTime.parse(matcher.group("datetime"), TIME_PATTERN);
+                    requestMethod = HttpMethod.fromText(matcher.group("requestMethod"));
+                    requestPath = matcher.group("requestPath");
+                    statusCode = Integer.parseInt(matcher.group("statusCode"));
+                    dataSize = Integer.parseInt(matcher.group("responseSize"));
+                    referer = matcher.group("referer");
+                    userAgent = UserAgent.fromString(matcher.group("userAgent"));
+                    return new LogEntry(ipAddress, referer, requestPath, time, requestMethod, userAgent, statusCode, dataSize);
                 }
             } catch (NumberFormatException ex) {
                 throw new LogEntryException("Не удалось преобразовать строку в Integer", ex);
@@ -57,8 +74,8 @@ public class LogEntry {
                 throw new LogEntryException("Ошибка инициализации параметров", ex);
             }
         }
+        return null;
     }
-
 
     public String getIpAddress() {
         return ipAddress;

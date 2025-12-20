@@ -20,20 +20,25 @@ public class UserAgent {
     private final static Map<String, List<String>> OPERATION_SYSTEM_MAP = new HashMap<>(Map.of(
             "Linux", List.of("Linux"),
             "Windows", List.of("Windows"),
-            "macOS", List.of("Macintosh", "Mac OS X"),
+            "macOS", List.of("Macintosh"),
             "Android", List.of("Android"),
             "iOS", List.of("iPhone", "iPad", "iPod"),
             "Chrome OS", List.of("CrOS")
     ));
-    String operationSystem;
-    String browser;
+    private final String operationSystem;
+    private final String browser;
 
-    public UserAgent(String userAgent) {
-        parseOperationSystem(userAgent);
-        parseBrowser(userAgent);
+    private UserAgent(String operationSystem, String browser) {
+        this.operationSystem = operationSystem;
+        this.browser = browser;
     }
 
-    private void parseOperationSystem(String userAgent) {
+    public static UserAgent fromString(String userAgent) {
+        return new UserAgent(parseOperationSystem(userAgent), parseBrowser(userAgent));
+    }
+
+
+    private static String parseOperationSystem(String userAgent) {
         if (userAgent != null && !userAgent.isEmpty()) {
             Matcher matcher = OPERATION_SYSTEM_PATTERN.matcher(userAgent);
             if (matcher.find()) {
@@ -41,32 +46,32 @@ public class UserAgent {
                 for (String k : OPERATION_SYSTEM_MAP.keySet()) {
                     for (String v : OPERATION_SYSTEM_MAP.get(k)) {
                         if (brackets.toLowerCase().contains(v.toLowerCase())) {
-                            this.operationSystem = k;
-                            return;
+                            return k;
                         }
                     }
                 }
             }
         }
+        return "";
     }
 
-    private void parseBrowser(String userAgent) {
+    private static String parseBrowser(String userAgent) {
         Matcher matcher;
         //Ищем браузеры Edge, Chrome, Opera, Firefox, IE по порядку как в мапе
         for (String i : BROWSER_PATTERN_MAP.keySet()) {
             matcher = BROWSER_PATTERN_MAP.get(i).matcher(userAgent);
             if (matcher.find()) {
-                this.browser = i;
-                return;
+                return i;
             }
         }
         //Ищем браузер Safari. Для него нужны отдельные проверки, что это не Chrome/Edge/Opera, которые содержат Safari
         matcher = BROWSER_SAFARI_PATTERN.matcher(userAgent);
         if (matcher.find()) {
             if (!userAgent.contains("Chrome") && !userAgent.contains("Edge") && !userAgent.contains("OPR")) {
-                this.browser = "Safari";
+                return "Safari";
             }
         }
+        return "";
     }
 
     public String getOperationSystem() {

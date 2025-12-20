@@ -1,64 +1,68 @@
 package ru.courses.main;
 
-import java.util.HashMap;
-import java.util.HashSet;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.Objects;
 
 public class Statistics {
-    private final HashSet<String> existingSites;
-    private final HashSet<String> nonExistentSites;
-    private final HashMap<String, Integer> OSCountMap;
-    private final HashMap<String, Integer> BowserCountMap;
+    private int totalTraffic;
+    private LocalDateTime minTime;
+    private LocalDateTime maxTime;
 
-    public Statistics(HashMap<String, Integer> bowserCountMap) {
-        this.existingSites = new HashSet<>();
-        this.nonExistentSites = new HashSet<>();
-        this.OSCountMap = new HashMap<>();
-        this.BowserCountMap = new HashMap<>();
+    public Statistics() {
+        this.totalTraffic = 0;
+        this.minTime = LocalDateTime.MAX;
+        this.maxTime = LocalDateTime.MIN;
     }
 
-    public HashSet<String> addEntryNonExistingSites(HashMap<String, Integer> listSites) {
-        for (String siteName : listSites.keySet()) {
-            if (!siteName.trim().isEmpty() && listSites.get(siteName) == 404)
-                this.nonExistentSites.add(siteName);
-        }
-        return this.nonExistentSites;
+    public void addEntry(LogEntry log) {
+        this.totalTraffic += log.getDataSize();
+        if (log.getTime().isBefore(this.minTime)) this.minTime = log.getTime();
+        if (log.getTime().isAfter(this.maxTime)) this.maxTime = log.getTime();
     }
 
-    public HashSet<String> addEntryExistingSites(HashMap<String, Integer> listSites) {
-        for (String siteName : listSites.keySet()) {
-            if (!siteName.trim().isEmpty() && listSites.get(siteName) == 200)
-                this.existingSites.add(siteName);
+    public double getTrafficRate() {
+        long durationInMinutes = ChronoUnit.MINUTES.between(this.minTime, this.maxTime);
+        double durationInHours = durationInMinutes / 60.0;
+        if (durationInHours == 0.0) {
+            return 0.0;
         }
-        return this.existingSites;
+        return (double) this.totalTraffic / durationInHours;
     }
 
-    public HashMap<String, Double> addEntryOSCountMap(String[] OSName) {
-        HashMap<String, Double> OSFrequency = new HashMap<>();
-        for (String name : OSName) {
-            if (!this.OSCountMap.containsKey(name)) {
-                this.OSCountMap.put(name, 1);
-            } else {
-                this.OSCountMap.put(name, this.OSCountMap.get(name) + 1);
-            }
-        }
-        for (String key : this.OSCountMap.keySet()) {
-            OSFrequency.put(key, (double) this.OSCountMap.get(key) / OSName.length);
-        }
-        return OSFrequency;
+    public int getTotalTraffic() {
+        return totalTraffic;
     }
 
-    public HashMap<String, Double> addEntryBowserCountMap(String[] browserName) {
-        HashMap<String, Double> BrowserFrequency = new HashMap<>();
-        for (String name : browserName) {
-            if (!this.BowserCountMap.containsKey(name)) {
-                this.BowserCountMap.put(name, 1);
-            } else {
-                this.BowserCountMap.put(name, this.BowserCountMap.get(name) + 1);
-            }
-        }
-        for (String key : this.BowserCountMap.keySet()) {
-            BrowserFrequency.put(key, (double) this.BowserCountMap.get(key) / browserName.length);
-        }
-        return BrowserFrequency;
+    public LocalDateTime getMinTime() {
+        return minTime;
+    }
+
+    public LocalDateTime getMaxTime() {
+        return maxTime;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Statistics that = (Statistics) o;
+        return totalTraffic == that.totalTraffic
+                && Objects.equals(minTime, that.minTime)
+                && Objects.equals(maxTime, that.maxTime);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(totalTraffic, minTime, maxTime);
+    }
+
+    @Override
+    public String toString() {
+        return "Statistics{" +
+                "totalTraffic=" + totalTraffic +
+                ", minTime=" + minTime +
+                ", maxTime=" + maxTime +
+                '}';
     }
 }
