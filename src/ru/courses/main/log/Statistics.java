@@ -1,5 +1,7 @@
 package ru.courses.main.log;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
@@ -7,7 +9,7 @@ import java.util.HashSet;
 import java.util.Objects;
 
 public class Statistics {
-    private int totalTraffic;
+    private long totalTraffic;
     private LocalDateTime minTime;
     private LocalDateTime maxTime;
     private final HashSet<String> existSites;
@@ -55,17 +57,20 @@ public class Statistics {
         }
     }
 
-    public double getTrafficRate() {
-        if (minTime == null || maxTime == null) return 0.0;
+    public BigDecimal getTrafficRate() {
+        if (minTime == null || maxTime == null) return new BigDecimal("0.0");
         long durationInMinutes = ChronoUnit.MINUTES.between(this.minTime, this.maxTime);
+        // Округляем до scale знаков после запятой
+        int scale = 3;
         double durationInHours = durationInMinutes / 60.0;
         if (durationInHours == 0.0) {
-            return 0.0;
+            return new BigDecimal("0.0");
         }
-        return (double) this.totalTraffic / durationInHours;
+        return new BigDecimal(String.valueOf((double) this.totalTraffic / durationInHours))
+                .setScale(scale, RoundingMode.HALF_UP);
     }
 
-    public int getTotalTraffic() {
+    public long getTotalTraffic() {
         return totalTraffic;
     }
 
@@ -85,23 +90,27 @@ public class Statistics {
         return noExistSites;
     }
 
-    public HashMap<String, Integer> getOperationSystemsFrequency() {
-        return operationSystemsFrequency;
+    public HashMap<String, BigDecimal> getOperationSystemsFrequency() {
+        return getFrequency(operationSystemsFrequency);
     }
 
-    public HashMap<String, Integer> getBrowsersFrequency() {
-        return browsersFrequency;
+    public HashMap<String, BigDecimal> getBrowsersFrequency() {
+        return getFrequency(browsersFrequency);
     }
 
-    private HashMap<String, Double> getFrequency(HashMap<String, Integer> map) {
-        HashMap<String, Double> result = new HashMap<>();
-        int sumValues = map
+    private HashMap<String, BigDecimal> getFrequency(HashMap<String, Integer> valuesMap) {
+        HashMap<String, BigDecimal> result = new HashMap<>();
+
+        //Округление до scale знаков
+        int scale = 8;
+        int sumValues = valuesMap
                 .values()
                 .stream()
                 .mapToInt(Integer::intValue)
                 .sum();
 
-        map.forEach((k, v) -> result.put(k, (double) v / sumValues));
+        valuesMap.forEach((k, v) -> result.put(k, new BigDecimal(String.valueOf((double) v / sumValues))
+                .setScale(scale, RoundingMode.HALF_UP)));
         return result;
     }
 
