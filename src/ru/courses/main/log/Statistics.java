@@ -16,6 +16,8 @@ public class Statistics {
     private final HashSet<String> noExistSites;
     private final HashMap<String, Integer> operationSystemsFrequency;
     private final HashMap<String, Integer> browsersFrequency;
+    private int usersAreNotBotsCount;
+    private int errorRequests;
 
     public Statistics() {
         this.totalTraffic = 0;
@@ -25,6 +27,8 @@ public class Statistics {
         this.operationSystemsFrequency = new HashMap<>();
         this.noExistSites = new HashSet<>();
         this.browsersFrequency = new HashMap<>();
+        this.usersAreNotBotsCount = 0;
+        this.errorRequests = 0;
     }
 
     public void addEntry(LogEntry log) {
@@ -38,7 +42,10 @@ public class Statistics {
         }
 
         if (log.getStatusCode() == 200) existSites.add(log.getPath());
-        if (log.getStatusCode() == 404) existSites.add(log.getPath());
+        if (log.getStatusCode()/100 == 4 || log.getStatusCode() / 100 == 5) {
+            noExistSites.add(log.getPath());
+            errorRequests++;
+        }
 
         String operationSystemName = log.getUserAgent().getOperationSystem();
         if (operationSystemName != null && !operationSystemName.isEmpty()) {
@@ -55,6 +62,8 @@ public class Statistics {
             else
                 browsersFrequency.put(browserName, browsersFrequency.get(browserName) + 1);
         }
+
+        if (!log.getUserAgent().isBot()) usersAreNotBotsCount++;
     }
 
     public BigDecimal getTrafficRate() {
@@ -90,6 +99,10 @@ public class Statistics {
         return noExistSites;
     }
 
+    public int getUsersAreNotBotsCount() {
+        return usersAreNotBotsCount;
+    }
+
     public HashMap<String, BigDecimal> getOperationSystemsFrequency() {
         return getFrequency(operationSystemsFrequency);
     }
@@ -114,6 +127,30 @@ public class Statistics {
         return result;
     }
 
+    public BigDecimal getAverageNumberOfVisitsPerHour() {
+        int scale = 3;
+        if (minTime == null || maxTime == null) return new BigDecimal("0.0");
+        long durationInMinutes = ChronoUnit.MINUTES.between(minTime, maxTime);
+        double durationInHours = durationInMinutes / 60.0;
+        if (durationInHours == 0.0) {
+            return new BigDecimal("0.0");
+        }
+        return new BigDecimal(String.valueOf((double) usersAreNotBotsCount / durationInHours))
+                .setScale(scale, RoundingMode.HALF_UP);
+    }
+
+    public BigDecimal getAverageErrorRequestsPerHour() {
+        int scale = 3;
+        if (minTime == null || maxTime == null) return new BigDecimal("0.0");
+        long durationInMinutes = ChronoUnit.MINUTES.between(minTime, maxTime);
+        double durationInHours = durationInMinutes / 60.0;
+        if (durationInHours == 0.0) {
+            return new BigDecimal("0.0");
+        }
+        return new BigDecimal(String.valueOf((double) errorRequests / durationInHours))
+                .setScale(scale, RoundingMode.HALF_UP);
+    }
+
     @Override
     public String toString() {
         return "Statistics{" +
@@ -124,6 +161,7 @@ public class Statistics {
                 ", noExistSites=" + noExistSites +
                 ", operationSystemsFrequency=" + operationSystemsFrequency +
                 ", browsersFrequency=" + browsersFrequency +
+                ", usersAreNotBotsCount=" + usersAreNotBotsCount +
                 '}';
     }
 

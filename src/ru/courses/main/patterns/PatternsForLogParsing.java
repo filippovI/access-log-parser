@@ -22,5 +22,6 @@ public class PatternsForLogParsing {
                     + "\"(?<userAgent>([^\"]*))\"");
     public static final Pattern BROWSER_SAFARI_PATTERN = Pattern.compile("(?i)Safari/(\\d+(\\.\\d+)*)");
     public static final Pattern OPERATION_SYSTEM_PATTERN = Pattern.compile("\\(([^)]+?)\\)");
+    public static final Pattern IS_BOT_PATTERN = Pattern.compile(".*\\(([^()]*)\\)[^()]*$");
 
 }
