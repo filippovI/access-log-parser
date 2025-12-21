@@ -43,7 +43,7 @@ public class Statistics {
             if (!operationSystemsFrequency.containsKey(operationSystemName))
                 operationSystemsFrequency.put(operationSystemName, 1);
             else
-                operationSystemsFrequency.put(operationSystemName, operationSystemsFrequency.get(operationSystemName + 1));
+                operationSystemsFrequency.put(operationSystemName, operationSystemsFrequency.get(operationSystemName) + 1);
         }
 
         String browserName = log.getUserAgent().getBrowser();
@@ -51,7 +51,7 @@ public class Statistics {
             if (!browsersFrequency.containsKey(browserName))
                 browsersFrequency.put(browserName, 1);
             else
-                browsersFrequency.put(browserName, browsersFrequency.get(browserName + 1));
+                browsersFrequency.put(browserName, browsersFrequency.get(browserName) + 1);
         }
     }
 
@@ -85,12 +85,12 @@ public class Statistics {
         return noExistSites;
     }
 
-    public HashMap<String, Double> getOperationSystemsFrequency() {
-        return getFrequency(operationSystemsFrequency);
+    public HashMap<String, Integer> getOperationSystemsFrequency() {
+        return operationSystemsFrequency;
     }
 
-    public HashMap<String, Double> getBrowsersFrequency() {
-        return getFrequency(browsersFrequency);
+    public HashMap<String, Integer> getBrowsersFrequency() {
+        return browsersFrequency;
     }
 
     private HashMap<String, Double> getFrequency(HashMap<String, Integer> map) {
