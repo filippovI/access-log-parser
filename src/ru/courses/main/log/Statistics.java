@@ -18,6 +18,7 @@ public class Statistics {
     private final HashMap<String, Integer> operationSystemsFrequency;
     private final HashMap<String, Integer> browsersFrequency;
     private final Set<String> uniqueIpAddressesList;
+    private final HashMap<Integer, Integer> countVisitsPerSecond;
     private int usersAreNotBotsCount;
     private int errorRequests;
 
@@ -32,6 +33,7 @@ public class Statistics {
         this.usersAreNotBotsCount = 0;
         this.errorRequests = 0;
         this.uniqueIpAddressesList = new HashSet<>();
+        this.countVisitsPerSecond = new HashMap<>();
     }
 
     public void addEntry(LogEntry log) {
@@ -70,7 +72,17 @@ public class Statistics {
             usersAreNotBotsCount++;
             if (log.getIpAddress() != null && !log.getIpAddress().isEmpty())
                 uniqueIpAddressesList.add(log.getIpAddress());
+
+            if (log.getTime() != null) {
+                int second = log.getTime().getSecond();
+                if (!countVisitsPerSecond.containsKey(second))
+                    countVisitsPerSecond.put(second, 1);
+                else
+                    countVisitsPerSecond.put(second, countVisitsPerSecond.get(second) + 1);
+            }
         }
+
+
     }
 
     public BigDecimal getTrafficRate() {
@@ -107,6 +119,19 @@ public class Statistics {
 
     public int getErrorRequests() {
         return errorRequests;
+    }
+
+    public HashMap<Integer, Integer> getCountVisitsPerSecond() {
+        return countVisitsPerSecond;
+    }
+
+    public int getPeakVisitPerSecond() {
+        return countVisitsPerSecond
+                .values()
+                .stream()
+                .mapToInt(Integer::intValue)
+                .max()
+                .orElse(0);
     }
 
     public HashMap<String, BigDecimal> getOperationSystemsFrequency() {
