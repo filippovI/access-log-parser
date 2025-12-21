@@ -4,12 +4,12 @@ import ru.courses.main.enums.HttpMethod;
 import ru.courses.main.exceptions.LogEntryException;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
+import static ru.courses.main.patterns.PatternsForLogParsing.LOG_PATTERN;
+import static ru.courses.main.patterns.PatternsForLogParsing.TIME_PATTERN;
 
 public class LogEntry {
     private final String ipAddress, referer, requestPath;
@@ -17,21 +17,7 @@ public class LogEntry {
     private final HttpMethod requestMethod;
     private final UserAgent userAgent;
     private final int statusCode, dataSize;
-    private static final DateTimeFormatter TIME_PATTERN = DateTimeFormatter.ofPattern("dd/MMM/yyyy:HH:mm:ss Z", Locale.ENGLISH);
-    private static final Pattern LOG_PATTERN = Pattern.compile(
-            "(?<ipAddress>\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})"
-                    + "[^\"]*"
-                    + "\\[(?<datetime>\\d{2}/[A-Za-z]{3}/\\d{4}:\\d{2}:\\d{2}:\\d{2}\\s[+\\-]\\d{4})]"
-                    + "\\s+"
-                    + "\"(?<requestMethod>[A-Z]+)\\s(?<requestPath>[^\"\\s]+)\\sHTTP/\\d\\.\\d\""
-                    + "\\s+"
-                    + "(?<statusCode>\\d{3})"
-                    + "\\s+"
-                    + "(?<responseSize>\\d+|-)"
-                    + "\\s+"
-                    + "\"(?<referer>[^\"]*)\""
-                    + "\\s"
-                    + "\"(?<userAgent>([^\"]*))\"");
+
 
     private LogEntry(String ipAddress, String referer, String requestPath, LocalDateTime time,
                      HttpMethod requestMethod, UserAgent userAgent, int statusCode, int dataSize) {

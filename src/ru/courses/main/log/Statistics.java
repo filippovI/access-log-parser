@@ -17,8 +17,8 @@ public class Statistics {
 
     public Statistics() {
         this.totalTraffic = 0;
-        this.minTime = LocalDateTime.MAX;
-        this.maxTime = LocalDateTime.MIN;
+        this.minTime = null;
+        this.maxTime = null;
         this.existSites = new HashSet<>();
         this.operationSystemsFrequency = new HashMap<>();
         this.noExistSites = new HashSet<>();
@@ -27,10 +27,16 @@ public class Statistics {
 
     public void addEntry(LogEntry log) {
         this.totalTraffic += log.getDataSize();
-        if (log.getTime().isBefore(this.minTime)) this.minTime = log.getTime();
-        if (log.getTime().isAfter(this.maxTime)) this.maxTime = log.getTime();
-        if (log.getStatusCode() == 200) this.existSites.add(log.getPath());
-        if (log.getStatusCode() == 404) this.existSites.add(log.getPath());
+        if (minTime == null && maxTime == null) {
+            minTime = log.getTime();
+            maxTime = log.getTime();
+        } else {
+            if (log.getTime().isBefore(minTime)) minTime = log.getTime();
+            if (log.getTime().isAfter(maxTime)) maxTime = log.getTime();
+        }
+
+        if (log.getStatusCode() == 200) existSites.add(log.getPath());
+        if (log.getStatusCode() == 404) existSites.add(log.getPath());
 
         String operationSystemName = log.getUserAgent().getOperationSystem();
         if (operationSystemName != null && !operationSystemName.isEmpty()) {
@@ -50,6 +56,7 @@ public class Statistics {
     }
 
     public double getTrafficRate() {
+        if (minTime == null || maxTime == null) return 0.0;
         long durationInMinutes = ChronoUnit.MINUTES.between(this.minTime, this.maxTime);
         double durationInHours = durationInMinutes / 60.0;
         if (durationInHours == 0.0) {

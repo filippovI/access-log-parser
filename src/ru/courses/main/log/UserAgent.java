@@ -4,8 +4,10 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static ru.courses.main.patterns.PatternsForLogParsing.BROWSER_SAFARI_PATTERN;
+import static ru.courses.main.patterns.PatternsForLogParsing.OPERATION_SYSTEM_PATTERN;
+
 public class UserAgent {
-    private static final Pattern BROWSER_SAFARI_PATTERN = Pattern.compile("(?i)Safari/(\\d+(\\.\\d+)*)");
 
     //Нужно сохранить порядок
     private static final Map<String, Pattern> BROWSER_PATTERN_MAP = new LinkedHashMap<>() {{
@@ -15,8 +17,6 @@ public class UserAgent {
         put("Firefox", Pattern.compile("(?i)Firefox/(\\d+(\\.\\d+)*)"));
         put("Internet Explorer", Pattern.compile("(?i)(MSIE\\s(\\d+\\.\\d+))|(Trident).*?((rv:)(\\d+\\.\\d+))"));
     }};
-
-    private static final Pattern OPERATION_SYSTEM_PATTERN = Pattern.compile("\\(([^)]+?)\\)");
     private final static Map<String, List<String>> OPERATION_SYSTEM_MAP = new HashMap<>(Map.of(
             "Linux", List.of("Linux"),
             "Windows", List.of("Windows"),
