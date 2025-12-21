@@ -99,24 +99,26 @@ public class UserAgent {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        UserAgent userAgent = (UserAgent) o;
-        return Objects.equals(operationSystem, userAgent.operationSystem) && Objects.equals(browser, userAgent.browser);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(operationSystem, browser);
-    }
-
-
-    @Override
     public String toString() {
         return "UserAgent{" +
                 "operationSystem='" + operationSystem + '\'' +
                 ", browser='" + browser + '\'' +
+                ", isBot=" + isBot +
                 '}';
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        UserAgent userAgent = (UserAgent) o;
+        return isBot == userAgent.isBot
+                && Objects.equals(operationSystem, userAgent.operationSystem)
+                && Objects.equals(browser, userAgent.browser);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(operationSystem, browser, isBot);
+    }
+
 }

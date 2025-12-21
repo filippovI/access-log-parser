@@ -7,6 +7,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 public class Statistics {
     private long totalTraffic;
@@ -16,6 +17,7 @@ public class Statistics {
     private final HashSet<String> noExistSites;
     private final HashMap<String, Integer> operationSystemsFrequency;
     private final HashMap<String, Integer> browsersFrequency;
+    private final Set<String> uniqueIpAddressesList;
     private int usersAreNotBotsCount;
     private int errorRequests;
 
@@ -29,6 +31,7 @@ public class Statistics {
         this.browsersFrequency = new HashMap<>();
         this.usersAreNotBotsCount = 0;
         this.errorRequests = 0;
+        this.uniqueIpAddressesList = new HashSet<>();
     }
 
     public void addEntry(LogEntry log) {
@@ -42,7 +45,7 @@ public class Statistics {
         }
 
         if (log.getStatusCode() == 200) existSites.add(log.getPath());
-        if (log.getStatusCode()/100 == 4 || log.getStatusCode() / 100 == 5) {
+        if (log.getStatusCode() / 100 == 4 || log.getStatusCode() / 100 == 5) {
             noExistSites.add(log.getPath());
             errorRequests++;
         }
@@ -63,20 +66,15 @@ public class Statistics {
                 browsersFrequency.put(browserName, browsersFrequency.get(browserName) + 1);
         }
 
-        if (!log.getUserAgent().isBot()) usersAreNotBotsCount++;
+        if (!log.getUserAgent().isBot()) {
+            usersAreNotBotsCount++;
+            if (log.getIpAddress() != null && !log.getIpAddress().isEmpty())
+                uniqueIpAddressesList.add(log.getIpAddress());
+        }
     }
 
     public BigDecimal getTrafficRate() {
-        if (minTime == null || maxTime == null) return new BigDecimal("0.0");
-        long durationInMinutes = ChronoUnit.MINUTES.between(this.minTime, this.maxTime);
-        // Округляем до scale знаков после запятой
-        int scale = 3;
-        double durationInHours = durationInMinutes / 60.0;
-        if (durationInHours == 0.0) {
-            return new BigDecimal("0.0");
-        }
-        return new BigDecimal(String.valueOf((double) this.totalTraffic / durationInHours))
-                .setScale(scale, RoundingMode.HALF_UP);
+        return getAverage(totalTraffic, 3);
     }
 
     public long getTotalTraffic() {
@@ -103,12 +101,50 @@ public class Statistics {
         return usersAreNotBotsCount;
     }
 
+    public Set<String> getUniqueIpAddressesList() {
+        return uniqueIpAddressesList;
+    }
+
+    public int getErrorRequests() {
+        return errorRequests;
+    }
+
     public HashMap<String, BigDecimal> getOperationSystemsFrequency() {
         return getFrequency(operationSystemsFrequency);
     }
 
     public HashMap<String, BigDecimal> getBrowsersFrequency() {
         return getFrequency(browsersFrequency);
+    }
+
+    public BigDecimal getAverageOfVisitsPerHour() {
+        return getAverage(usersAreNotBotsCount);
+
+    }
+
+    public BigDecimal getAverageErrorRequestsPerHour() {
+        return getAverage(errorRequests);
+
+    }
+
+    public BigDecimal getAverageTrafficPerUser() {
+        return new BigDecimal(String.valueOf((double) usersAreNotBotsCount / uniqueIpAddressesList.size()))
+                .setScale(3, RoundingMode.HALF_UP);
+    }
+
+    private BigDecimal getAverage(long data) {
+        return getAverage(data, 3);
+    }
+
+    private BigDecimal getAverage(long data, int scale) {
+        if (minTime == null || maxTime == null) return new BigDecimal("0.0");
+        long durationInMinutes = ChronoUnit.MINUTES.between(minTime, maxTime);
+        double durationInHours = durationInMinutes / 60.0;
+        if (durationInHours == 0.0) {
+            return new BigDecimal("0.0");
+        }
+        return new BigDecimal(String.valueOf((double) data / durationInHours))
+                .setScale(scale, RoundingMode.HALF_UP);
     }
 
     private HashMap<String, BigDecimal> getFrequency(HashMap<String, Integer> valuesMap) {
@@ -127,30 +163,6 @@ public class Statistics {
         return result;
     }
 
-    public BigDecimal getAverageNumberOfVisitsPerHour() {
-        int scale = 3;
-        if (minTime == null || maxTime == null) return new BigDecimal("0.0");
-        long durationInMinutes = ChronoUnit.MINUTES.between(minTime, maxTime);
-        double durationInHours = durationInMinutes / 60.0;
-        if (durationInHours == 0.0) {
-            return new BigDecimal("0.0");
-        }
-        return new BigDecimal(String.valueOf((double) usersAreNotBotsCount / durationInHours))
-                .setScale(scale, RoundingMode.HALF_UP);
-    }
-
-    public BigDecimal getAverageErrorRequestsPerHour() {
-        int scale = 3;
-        if (minTime == null || maxTime == null) return new BigDecimal("0.0");
-        long durationInMinutes = ChronoUnit.MINUTES.between(minTime, maxTime);
-        double durationInHours = durationInMinutes / 60.0;
-        if (durationInHours == 0.0) {
-            return new BigDecimal("0.0");
-        }
-        return new BigDecimal(String.valueOf((double) errorRequests / durationInHours))
-                .setScale(scale, RoundingMode.HALF_UP);
-    }
-
     @Override
     public String toString() {
         return "Statistics{" +
@@ -161,7 +173,9 @@ public class Statistics {
                 ", noExistSites=" + noExistSites +
                 ", operationSystemsFrequency=" + operationSystemsFrequency +
                 ", browsersFrequency=" + browsersFrequency +
+                ", uniqueIpAddressesList=" + uniqueIpAddressesList +
                 ", usersAreNotBotsCount=" + usersAreNotBotsCount +
+                ", errorRequests=" + errorRequests +
                 '}';
     }
 
@@ -171,8 +185,15 @@ public class Statistics {
         if (o == null || getClass() != o.getClass()) return false;
         Statistics that = (Statistics) o;
         return totalTraffic == that.totalTraffic
+                && usersAreNotBotsCount == that.usersAreNotBotsCount
+                && errorRequests == that.errorRequests
                 && Objects.equals(minTime, that.minTime)
-                && Objects.equals(maxTime, that.maxTime);
+                && Objects.equals(maxTime, that.maxTime)
+                && Objects.equals(existSites, that.existSites)
+                && Objects.equals(noExistSites, that.noExistSites)
+                && Objects.equals(operationSystemsFrequency, that.operationSystemsFrequency)
+                && Objects.equals(browsersFrequency, that.browsersFrequency)
+                && Objects.equals(uniqueIpAddressesList, that.uniqueIpAddressesList);
     }
 
     @Override
