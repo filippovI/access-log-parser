@@ -2,23 +2,29 @@ package ru.courses.main.log;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Objects;
-import java.util.Set;
+import java.util.regex.Matcher;
+
+import static ru.courses.main.patterns.PatternsForLogParsing.DOMAIN_PATTERN;
 
 public class Statistics {
     private long totalTraffic;
     private LocalDateTime minTime;
     private LocalDateTime maxTime;
-    private final HashSet<String> existSites;
-    private final HashSet<String> noExistSites;
-    private final HashMap<String, Integer> operationSystemsFrequency;
-    private final HashMap<String, Integer> browsersFrequency;
-    private final Set<String> uniqueIpAddressesList;
-    private final HashMap<Integer, Integer> countVisitsPerSecond;
+    private final HashMap<String, Integer> operationSystemsFrequencyMap;
+    private final HashMap<String, Integer> browsersFrequencyMap;
+    private final HashMap<String, Integer> countVisitsPerSecondMap;
+    private final HashMap<String, Integer> countMaximumVisitsByOneUserMap;
+    private final HashSet<String> refererSet;
+    private final HashSet<String> uniqueIpAddressesSet;
+    private final HashSet<String> existSitesSet;
+    private final HashSet<String> noExistSitesSet;
     private int usersAreNotBotsCount;
     private int errorRequests;
 
@@ -26,63 +32,40 @@ public class Statistics {
         this.totalTraffic = 0;
         this.minTime = null;
         this.maxTime = null;
-        this.existSites = new HashSet<>();
-        this.operationSystemsFrequency = new HashMap<>();
-        this.noExistSites = new HashSet<>();
-        this.browsersFrequency = new HashMap<>();
+        this.existSitesSet = new HashSet<>();
+        this.operationSystemsFrequencyMap = new HashMap<>();
+        this.noExistSitesSet = new HashSet<>();
+        this.browsersFrequencyMap = new HashMap<>();
         this.usersAreNotBotsCount = 0;
         this.errorRequests = 0;
-        this.uniqueIpAddressesList = new HashSet<>();
-        this.countVisitsPerSecond = new HashMap<>();
+        this.uniqueIpAddressesSet = new HashSet<>();
+        this.countVisitsPerSecondMap = new HashMap<>();
+        this.refererSet = new HashSet<>();
+        this.countMaximumVisitsByOneUserMap = new HashMap<>();
     }
 
     public void addEntry(LogEntry log) {
         this.totalTraffic += log.getDataSize();
-        if (minTime == null && maxTime == null) {
-            minTime = log.getTime();
-            maxTime = log.getTime();
-        } else {
-            if (log.getTime().isBefore(minTime)) minTime = log.getTime();
-            if (log.getTime().isAfter(maxTime)) maxTime = log.getTime();
-        }
-
-        if (log.getStatusCode() == 200) existSites.add(log.getPath());
-        if (log.getStatusCode() / 100 == 4 || log.getStatusCode() / 100 == 5) {
-            noExistSites.add(log.getPath());
-            errorRequests++;
-        }
-
-        String operationSystemName = log.getUserAgent().getOperationSystem();
-        if (operationSystemName != null && !operationSystemName.isEmpty()) {
-            if (!operationSystemsFrequency.containsKey(operationSystemName))
-                operationSystemsFrequency.put(operationSystemName, 1);
-            else
-                operationSystemsFrequency.put(operationSystemName, operationSystemsFrequency.get(operationSystemName) + 1);
-        }
-
-        String browserName = log.getUserAgent().getBrowser();
-        if (browserName != null && !browserName.isEmpty()) {
-            if (!browsersFrequency.containsKey(browserName))
-                browsersFrequency.put(browserName, 1);
-            else
-                browsersFrequency.put(browserName, browsersFrequency.get(browserName) + 1);
-        }
+        setTime(log);
+        addExistsAndNoExistsSites(log);
+        addCountInMap(log.getUserAgent().getOperationSystem(), operationSystemsFrequencyMap);
+        addCountInMap(log.getUserAgent().getBrowser(), browsersFrequencyMap);
+        addCountInMap(log.getIpAddress(), countMaximumVisitsByOneUserMap);
+        addDomainInRefererSet(log);
 
         if (!log.getUserAgent().isBot()) {
+            //Наращиваем каунтер запросов - не ботов
             usersAreNotBotsCount++;
-            if (log.getIpAddress() != null && !log.getIpAddress().isEmpty())
-                uniqueIpAddressesList.add(log.getIpAddress());
 
+            //Добавляем ip адрес в uniqueIpAddressesSet
+            if (log.getIpAddress() != null && !log.getIpAddress().isEmpty())
+                uniqueIpAddressesSet.add(log.getIpAddress());
+
+            //Считаем количество запросов в секунду
             if (log.getTime() != null) {
-                int second = log.getTime().getSecond();
-                if (!countVisitsPerSecond.containsKey(second))
-                    countVisitsPerSecond.put(second, 1);
-                else
-                    countVisitsPerSecond.put(second, countVisitsPerSecond.get(second) + 1);
+                addCountInMap(String.valueOf(log.getTime().getSecond()), countVisitsPerSecondMap);
             }
         }
-
-
     }
 
     public BigDecimal getTrafficRate() {
@@ -101,59 +84,72 @@ public class Statistics {
         return maxTime;
     }
 
-    public HashSet<String> getExistSites() {
-        return existSites;
+    public HashSet<String> getExistSitesSet() {
+        return existSitesSet;
     }
 
-    public HashSet<String> getNoExistSites() {
-        return noExistSites;
+    public HashSet<String> getNoExistSitesSet() {
+        return noExistSitesSet;
     }
 
     public int getUsersAreNotBotsCount() {
         return usersAreNotBotsCount;
     }
 
-    public Set<String> getUniqueIpAddressesList() {
-        return uniqueIpAddressesList;
-    }
-
     public int getErrorRequests() {
         return errorRequests;
     }
 
-    public HashMap<Integer, Integer> getCountVisitsPerSecond() {
-        return countVisitsPerSecond;
+    public HashMap<String, Integer> getCountVisitsPerSecondMap() {
+        return countVisitsPerSecondMap;
+    }
+
+    public HashSet<String> getRefererSet() {
+        return refererSet;
+    }
+
+    public HashMap<String, Integer> getCountMaximumVisitsByOneUserMap() {
+        return countMaximumVisitsByOneUserMap;
+    }
+
+    public HashMap<String, Integer> getBrowsersFrequencyMap() {
+        return browsersFrequencyMap;
+    }
+
+    public HashMap<String, Integer> getOperationSystemsFrequencyMap() {
+        return operationSystemsFrequencyMap;
+    }
+
+    public HashSet<String> getUniqueIpAddressesSet() {
+        return uniqueIpAddressesSet;
     }
 
     public int getPeakVisitPerSecond() {
-        return countVisitsPerSecond
-                .values()
-                .stream()
-                .mapToInt(Integer::intValue)
-                .max()
-                .orElse(0);
+        return getMaxFromMap(countVisitsPerSecondMap);
+    }
+
+    public int getCountMaximumVisitsByOneUser() {
+        return getMaxFromMap(countMaximumVisitsByOneUserMap);
     }
 
     public HashMap<String, BigDecimal> getOperationSystemsFrequency() {
-        return getFrequency(operationSystemsFrequency);
+        return getFrequency(operationSystemsFrequencyMap);
     }
 
     public HashMap<String, BigDecimal> getBrowsersFrequency() {
-        return getFrequency(browsersFrequency);
+        return getFrequency(browsersFrequencyMap);
     }
 
     public BigDecimal getAverageOfVisitsPerHour() {
         return getAverage(usersAreNotBotsCount);
-
     }
 
     public BigDecimal getAverageErrorRequestsPerHour() {
         return getAverage(errorRequests);
-
     }
 
     public BigDecimal getAverageTrafficPerUser() {
-        return new BigDecimal(String.valueOf((double) usersAreNotBotsCount / uniqueIpAddressesList.size()))
+        return new BigDecimal(String.valueOf((double) usersAreNotBotsCount / uniqueIpAddressesSet.size()))
                 .setScale(3, RoundingMode.HALF_UP);
     }
 
@@ -173,10 +169,12 @@ public class Statistics {
     }
 
     private HashMap<String, BigDecimal> getFrequency(HashMap<String, Integer> valuesMap) {
-        HashMap<String, BigDecimal> result = new HashMap<>();
+        return getFrequency(valuesMap, 8);
+    }
 
+    private HashMap<String, BigDecimal> getFrequency(HashMap<String, Integer> valuesMap, int scale) {
+        HashMap<String, BigDecimal> result = new HashMap<>();
         //Округление до scale знаков
-        int scale = 8;
         int sumValues = valuesMap
                 .values()
                 .stream()
@@ -188,17 +186,66 @@ public class Statistics {
         return result;
     }
 
+    private <T> int getMaxFromMap(HashMap<T, Integer> map) {
+        return map
+                .values()
+                .stream()
+                .mapToInt(Integer::intValue)
+                .max()
+                .orElse(0);
+    }
+
+    private void setTime(LogEntry log) {
+        if (minTime == null && maxTime == null) {
+            minTime = log.getTime();
+            maxTime = log.getTime();
+        } else {
+            if (log.getTime().isBefore(minTime)) minTime = log.getTime();
+            if (log.getTime().isAfter(maxTime)) maxTime = log.getTime();
+        }
+    }
+
+    private void addExistsAndNoExistsSites(LogEntry log) {
+        if (log.getStatusCode() == 200) existSitesSet.add(log.getPath());
+        if (log.getStatusCode() / 100 == 4 || log.getStatusCode() / 100 == 5) {
+            noExistSitesSet.add(log.getPath());
+            errorRequests++;
+        }
+    }
+
+    private void addCountInMap(String keyName, HashMap<String, Integer> map) {
+        if (keyName != null && !keyName.isEmpty()) {
+            if (!map.containsKey(keyName))
+                map.put(keyName, 1);
+            else
+                map.put(keyName, map.get(keyName) + 1);
+        }
+    }
+
+    private void addDomainInRefererSet(LogEntry log) {
+        if (log.getReferer() != null && !log.getReferer().isEmpty() && !log.getReferer().equals("-")) {
+            String format_url = URLDecoder.decode(log.getReferer(), StandardCharsets.UTF_8);
+            Matcher matcher = DOMAIN_PATTERN.matcher(format_url);
+            if (matcher.find()) {
+                refererSet.add(URLDecoder.decode(matcher.group(1), StandardCharsets.UTF_8));
+            }
+        }
+    }
+
     @Override
     public String toString() {
         return "Statistics{" +
                 "totalTraffic=" + totalTraffic +
                 ", minTime=" + minTime +
                 ", maxTime=" + maxTime +
-                ", existSites=" + existSites +
-                ", noExistSites=" + noExistSites +
-                ", operationSystemsFrequency=" + operationSystemsFrequency +
-                ", browsersFrequency=" + browsersFrequency +
-                ", uniqueIpAddressesList=" + uniqueIpAddressesList +
+                ", operationSystemsFrequencyMap=" + operationSystemsFrequencyMap +
+                ", browsersFrequencyMap=" + browsersFrequencyMap +
+                ", countVisitsPerSecondMap=" + countVisitsPerSecondMap +
+                ", countMaximumVisitsByOneUserMap=" + countMaximumVisitsByOneUserMap +
+                ", refererSet=" + refererSet +
+                ", uniqueIpAddressesSet=" + uniqueIpAddressesSet +
+                ", existSitesSet=" + existSitesSet +
+                ", noExistSitesSet=" + noExistSitesSet +
                 ", usersAreNotBotsCount=" + usersAreNotBotsCount +
                 ", errorRequests=" + errorRequests +
                 '}';
@@ -214,16 +261,18 @@ public class Statistics {
                 && errorRequests == that.errorRequests
                 && Objects.equals(minTime, that.minTime)
                 && Objects.equals(maxTime, that.maxTime)
-                && Objects.equals(existSites, that.existSites)
-                && Objects.equals(noExistSites, that.noExistSites)
-                && Objects.equals(operationSystemsFrequency, that.operationSystemsFrequency)
-                && Objects.equals(browsersFrequency, that.browsersFrequency)
-                && Objects.equals(uniqueIpAddressesList, that.uniqueIpAddressesList);
+                && Objects.equals(operationSystemsFrequencyMap, that.operationSystemsFrequencyMap)
+                && Objects.equals(browsersFrequencyMap, that.browsersFrequencyMap)
+                && Objects.equals(countVisitsPerSecondMap, that.countVisitsPerSecondMap)
+                && Objects.equals(countMaximumVisitsByOneUserMap, that.countMaximumVisitsByOneUserMap)
+                && Objects.equals(refererSet, that.refererSet)
+                && Objects.equals(uniqueIpAddressesSet, that.uniqueIpAddressesSet)
+                && Objects.equals(existSitesSet, that.existSitesSet)
+                && Objects.equals(noExistSitesSet, that.noExistSitesSet);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(totalTraffic, minTime, maxTime);
     }
-
 }

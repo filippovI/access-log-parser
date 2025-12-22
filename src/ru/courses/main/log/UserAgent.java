@@ -1,21 +1,14 @@
 package ru.courses.main.log;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static ru.courses.main.patterns.PatternsForLogParsing.*;
 
 public class UserAgent {
-
-    //Нужно сохранить порядок
-    private static final Map<String, Pattern> BROWSER_PATTERN_MAP = new LinkedHashMap<>() {{
-        put("Edge", Pattern.compile("(?i)Edge/(\\d+(\\.\\d+)*)"));
-        put("Opera", Pattern.compile("(?i)(Opera|OPR)/(\\d+(\\.\\d+)*)"));
-        put("Chrome", Pattern.compile("(?i)Chrome/(\\d+(\\.\\d+)*)"));
-        put("Firefox", Pattern.compile("(?i)Firefox/(\\d+(\\.\\d+)*)"));
-        put("Internet Explorer", Pattern.compile("(?i)(MSIE\\s(\\d+\\.\\d+))|(Trident).*?((rv:)(\\d+\\.\\d+))"));
-    }};
     private final static Map<String, List<String>> OPERATION_SYSTEMS_MAP = new HashMap<>(Map.of(
             "Linux", List.of("Linux"),
             "Windows", List.of("Windows"),
@@ -120,5 +113,4 @@ public class UserAgent {
     public int hashCode() {
         return Objects.hash(operationSystem, browser, isBot);
     }
-
 }

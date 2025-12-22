@@ -1,7 +1,9 @@
 package ru.courses.main.patterns;
 
 import java.time.format.DateTimeFormatter;
+import java.util.LinkedHashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 public class PatternsForLogParsing {
@@ -22,6 +24,14 @@ public class PatternsForLogParsing {
                     + "\"(?<userAgent>([^\"]*))\"");
     public static final Pattern BROWSER_SAFARI_PATTERN = Pattern.compile("(?i)Safari/(\\d+(\\.\\d+)*)");
     public static final Pattern OPERATION_SYSTEM_PATTERN = Pattern.compile("\\(([^)]+?)\\)");
+    //Нужно сохранить порядок
+    public static final Map<String, Pattern> BROWSER_PATTERN_MAP = new LinkedHashMap<>() {{
+        put("Edge", Pattern.compile("(?i)Edge/(\\d+(\\.\\d+)*)"));
+        put("Opera", Pattern.compile("(?i)(Opera|OPR)/(\\d+(\\.\\d+)*)"));
+        put("Chrome", Pattern.compile("(?i)Chrome/(\\d+(\\.\\d+)*)"));
+        put("Firefox", Pattern.compile("(?i)Firefox/(\\d+(\\.\\d+)*)"));
+        put("Internet Explorer", Pattern.compile("(?i)(MSIE\\s(\\d+\\.\\d+))|(Trident).*?((rv:)(\\d+\\.\\d+))"));
+    }};
     public static final Pattern IS_BOT_PATTERN = Pattern.compile(".*\\(([^()]*)\\)[^()]*$");
-
+    public static final Pattern DOMAIN_PATTERN = Pattern.compile("(?:https?://|ftp://)?(?:www\\.)?([^/:?#&]+)");
 }
