@@ -85,11 +85,11 @@ public class Statistics {
     }
 
     public HashSet<String> getExistSitesSet() {
-        return existSitesSet;
+        return new HashSet<>(existSitesSet);
     }
 
     public HashSet<String> getNoExistSitesSet() {
-        return noExistSitesSet;
+        return  new HashSet<>(noExistSitesSet);
     }
 
     public int getUsersAreNotBotsCount() {
@@ -101,27 +101,27 @@ public class Statistics {
     }
 
     public HashMap<String, Integer> getCountVisitsPerSecondMap() {
-        return countVisitsPerSecondMap;
+        return new HashMap<>(countVisitsPerSecondMap);
     }
 
     public HashSet<String> getRefererSet() {
-        return refererSet;
+        return new HashSet<>(refererSet);
     }
 
     public HashMap<String, Integer> getCountMaximumVisitsByOneUserMap() {
-        return countMaximumVisitsByOneUserMap;
+        return new HashMap<>(countMaximumVisitsByOneUserMap);
     }
 
     public HashMap<String, Integer> getBrowsersFrequencyMap() {
-        return browsersFrequencyMap;
+        return new HashMap<>(browsersFrequencyMap);
     }
 
     public HashMap<String, Integer> getOperationSystemsFrequencyMap() {
-        return operationSystemsFrequencyMap;
+        return new HashMap<>(operationSystemsFrequencyMap);
     }
 
     public HashSet<String> getUniqueIpAddressesSet() {
-        return uniqueIpAddressesSet;
+        return new HashSet<>(uniqueIpAddressesSet);
     }
 
     public int getPeakVisitPerSecond() {
