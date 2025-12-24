@@ -45,25 +45,27 @@ public class Statistics {
     }
 
     public void addEntry(LogEntry log) {
-        this.totalTraffic += log.getDataSize();
-        setTime(log);
-        addExistsAndNoExistsSites(log);
-        addCountInMap(log.getUserAgent().getOperationSystem(), operationSystemsFrequencyMap);
-        addCountInMap(log.getUserAgent().getBrowser(), browsersFrequencyMap);
-        addCountInMap(log.getIpAddress(), countMaximumVisitsByOneUserMap);
-        addDomainInRefererSet(log);
+        if (log != null) {
+            this.totalTraffic += log.getDataSize();
+            setTime(log);
+            addExistsAndNoExistsSites(log);
+            addCountInMap(log.getUserAgent().getOperationSystem(), operationSystemsFrequencyMap);
+            addCountInMap(log.getUserAgent().getBrowser(), browsersFrequencyMap);
+            addCountInMap(log.getIpAddress(), countMaximumVisitsByOneUserMap);
+            addDomainInRefererSet(log);
 
-        if (!log.getUserAgent().isBot()) {
-            //Наращиваем каунтер запросов - не ботов
-            usersAreNotBotsCount++;
+            if (!log.getUserAgent().isBot()) {
+                //Наращиваем каунтер запросов - не ботов
+                usersAreNotBotsCount++;
 
-            //Добавляем ip адрес в uniqueIpAddressesSet
-            if (log.getIpAddress() != null && !log.getIpAddress().isEmpty())
-                uniqueIpAddressesSet.add(log.getIpAddress());
+                //Добавляем ip адрес в uniqueIpAddressesSet
+                if (log.getIpAddress() != null && !log.getIpAddress().isEmpty())
+                    uniqueIpAddressesSet.add(log.getIpAddress());
 
-            //Считаем количество запросов в секунду
-            if (log.getTime() != null) {
-                addCountInMap(String.valueOf(log.getTime().getSecond()), countVisitsPerSecondMap);
+                //Считаем количество запросов в секунду
+                if (log.getTime() != null) {
+                    addCountInMap(String.valueOf(log.getTime().getSecond()), countVisitsPerSecondMap);
+                }
             }
         }
     }
@@ -89,7 +91,7 @@ public class Statistics {
     }
 
     public HashSet<String> getNoExistSitesSet() {
-        return  new HashSet<>(noExistSitesSet);
+        return new HashSet<>(noExistSitesSet);
     }
 
     public int getUsersAreNotBotsCount() {
