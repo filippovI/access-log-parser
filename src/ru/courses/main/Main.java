@@ -34,6 +34,15 @@ public class Main {
                         LogEntry logEntry = LogEntry.fromString(line);
                         stat.addEntry(logEntry);
                     }
+                    System.out.println("Средний объем трафика за час: " + stat.getTrafficRate());
+                    System.out.println("Статистика браузеров: " + stat.getBrowsersFrequency());
+                    System.out.println("Статистика операционных систем: " + stat.getOperationSystemsFrequency());
+                    System.out.println("Среднее количество посещений за час: " + stat.getAverageOfVisitsPerHour());
+                    System.out.println("Среднее количество ошибочных запросов за час: " + stat.getAverageErrorRequestsPerHour());
+                    System.out.println("Средний трафик одним пользователем: " + stat.getAverageTrafficPerUser());
+                    System.out.println("Пиковая посещаемость в секунду: " + stat.getPeakVisitPerSecond());
+                    System.out.println("Сайты с ссылками на текущий сайт: " + stat.getRefererSet());
+                    System.out.println("Максимальная посещаемость одним пользователем: " + stat.getCountMaximumVisitsByOneUser());
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
@@ -45,5 +54,6 @@ public class Main {
                 System.out.println("Такого файла или директории не существует");
             System.out.println("----------------------------------------");
         }
+
     }
 }
