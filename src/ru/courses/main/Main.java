@@ -56,7 +56,6 @@ public class Main {
                         if (botName.equalsIgnoreCase("yandexBot")) yandexBotCount++;
                         if (botName.equalsIgnoreCase("googleBot")) googleBotCount++;
 
-
                         if (length > maxLength) maxLength = length;
                         if (length < minLength) minLength = length;
                         sumLine++;
