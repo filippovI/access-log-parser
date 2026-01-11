@@ -1,6 +1,8 @@
 package ru.courses.main;
 
 import ru.courses.main.exceptions.MaximumLengthException;
+import ru.courses.main.log.LogEntry;
+import ru.courses.main.log.Statistics;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -36,12 +38,14 @@ public class Main {
                     int minLength = Integer.MAX_VALUE;
                     int yandexBotCount = 0;
                     int googleBotCount = 0;
+                    Statistics statistics = new Statistics();
                     while ((line = reader.readLine()) != null) {
                         int length = line.length();
                         if (length > 1024)
                             throw new MaximumLengthException("Длина строки в файле превышает 1024 символа\n" +
                                     "Длина некорректной строки: " + length);
-
+                        LogEntry log = LogEntry.fromString(line);
+                        statistics.addEntry(log);
                         String botName = findBrackets(line)
                                 .stream()
                                 .filter(i -> i.toLowerCase().contains("googlebot") || i.toLowerCase().contains("yandexbot"))
@@ -62,6 +66,8 @@ public class Main {
                                 + (double) yandexBotCount / sumLine);
                         System.out.println("Количество запросов от googleBot относительно общего числа запросов: "
                                 + (double) googleBotCount / sumLine);
+                        System.out.println("Все существующие страницы сайта: " + statistics.getExistSites());
+                        System.out.println("Статистика операционных систем: " + statistics.getOperationSystemsFrequency());
                     } else System.out.println("Файл пустой");
                 } catch (Exception ex) {
                     ex.printStackTrace();
