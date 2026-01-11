@@ -151,7 +151,9 @@ public class Statistics {
     }
 
     public BigDecimal getAverageTrafficPerUser() {
-        return new BigDecimal(String.valueOf((double) usersAreNotBotsCount / uniqueIpAddressesSet.size()))
+        String result = String.valueOf((double) usersAreNotBotsCount / uniqueIpAddressesSet.size());
+        result = result.equals("NaN") || result.equals("Infinity") ? "0": result;
+        return new BigDecimal(result)
                 .setScale(3, RoundingMode.HALF_UP);
     }
 
@@ -185,7 +187,13 @@ public class Statistics {
 
         valuesMap.forEach((k, v) -> result.put(k, new BigDecimal(String.valueOf((double) v / sumValues))
                 .setScale(scale, RoundingMode.HALF_UP)));
+
+        if (result.values().stream().reduce(BigDecimal.ZERO, BigDecimal::add).intValue() != 1
+                && sumValues != 0)
+            throw new IllegalArgumentException("Сумма долей не равна 1");
         return result;
+
+
     }
 
     private <T> int getMaxFromMap(HashMap<T, Integer> map) {
