@@ -4,8 +4,9 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static ru.courses.main.patterns.PatternsForLogParsing.*;
+
 public class UserAgent {
-    private static final Pattern BROWSER_SAFARI_PATTERN = Pattern.compile("(?i)Safari/(\\d+(\\.\\d+)*)");
 
     //Нужно сохранить порядок
     private static final Map<String, Pattern> BROWSER_PATTERN_MAP = new LinkedHashMap<>() {{
@@ -15,9 +16,7 @@ public class UserAgent {
         put("Firefox", Pattern.compile("(?i)Firefox/(\\d+(\\.\\d+)*)"));
         put("Internet Explorer", Pattern.compile("(?i)(MSIE\\s(\\d+\\.\\d+))|(Trident).*?((rv:)(\\d+\\.\\d+))"));
     }};
-
-    private static final Pattern OPERATION_SYSTEM_PATTERN = Pattern.compile("\\(([^)]+?)\\)");
-    private final static Map<String, List<String>> OPERATION_SYSTEM_MAP = new HashMap<>(Map.of(
+    private final static Map<String, List<String>> OPERATION_SYSTEMS_MAP = new HashMap<>(Map.of(
             "Linux", List.of("Linux"),
             "Windows", List.of("Windows"),
             "macOS", List.of("Macintosh"),
@@ -27,14 +26,16 @@ public class UserAgent {
     ));
     private final String operationSystem;
     private final String browser;
+    private final boolean isBot;
 
-    private UserAgent(String operationSystem, String browser) {
+    private UserAgent(String operationSystem, String browser, boolean isBot) {
         this.operationSystem = operationSystem;
         this.browser = browser;
+        this.isBot = isBot;
     }
 
     public static UserAgent fromString(String userAgent) {
-        return new UserAgent(parseOperationSystem(userAgent), parseBrowser(userAgent));
+        return new UserAgent(parseOperationSystem(userAgent), parseBrowser(userAgent), parseBot(userAgent));
     }
 
 
@@ -43,8 +44,8 @@ public class UserAgent {
             Matcher matcher = OPERATION_SYSTEM_PATTERN.matcher(userAgent);
             if (matcher.find()) {
                 String brackets = matcher.group(1);
-                for (String k : OPERATION_SYSTEM_MAP.keySet()) {
-                    for (String v : OPERATION_SYSTEM_MAP.get(k)) {
+                for (String k : OPERATION_SYSTEMS_MAP.keySet()) {
+                    for (String v : OPERATION_SYSTEMS_MAP.get(k)) {
                         if (brackets.toLowerCase().contains(v.toLowerCase())) {
                             return k;
                         }
@@ -74,6 +75,17 @@ public class UserAgent {
         return "";
     }
 
+    private static boolean parseBot(String userAgent) {
+        if (userAgent != null && !userAgent.isEmpty()) {
+            Matcher matcher = IS_BOT_PATTERN.matcher(userAgent);
+            if (matcher.find()) {
+                String lastBrackets = matcher.group(1);
+                return lastBrackets.contains("bot");
+            }
+        }
+        return false;
+    }
+
     public String getOperationSystem() {
         return operationSystem;
     }
@@ -82,17 +94,8 @@ public class UserAgent {
         return browser;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        UserAgent userAgent = (UserAgent) o;
-        return Objects.equals(operationSystem, userAgent.operationSystem) && Objects.equals(browser, userAgent.browser);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(operationSystem, browser);
+    public boolean isBot() {
+        return isBot;
     }
 
     @Override
@@ -100,6 +103,22 @@ public class UserAgent {
         return "UserAgent{" +
                 "operationSystem='" + operationSystem + '\'' +
                 ", browser='" + browser + '\'' +
+                ", isBot=" + isBot +
                 '}';
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        UserAgent userAgent = (UserAgent) o;
+        return isBot == userAgent.isBot
+                && Objects.equals(operationSystem, userAgent.operationSystem)
+                && Objects.equals(browser, userAgent.browser);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(operationSystem, browser, isBot);
+    }
+
 }
