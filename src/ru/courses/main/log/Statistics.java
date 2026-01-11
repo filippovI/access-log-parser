@@ -35,41 +35,43 @@ public class Statistics {
     }
 
     public void addEntry(LogEntry log) {
-        this.totalTraffic += log.getDataSize();
-        if (minTime == null && maxTime == null) {
-            minTime = log.getTime();
-            maxTime = log.getTime();
-        } else {
-            if (log.getTime().isBefore(minTime)) minTime = log.getTime();
-            if (log.getTime().isAfter(maxTime)) maxTime = log.getTime();
-        }
+        if (log != null) {
+            this.totalTraffic += log.getDataSize();
+            if (minTime == null && maxTime == null) {
+                minTime = log.getTime();
+                maxTime = log.getTime();
+            } else {
+                if (log.getTime().isBefore(minTime)) minTime = log.getTime();
+                if (log.getTime().isAfter(maxTime)) maxTime = log.getTime();
+            }
 
-        if (log.getStatusCode() == 200) existSites.add(log.getPath());
-        if (log.getStatusCode() / 100 == 4 || log.getStatusCode() / 100 == 5) {
-            noExistSites.add(log.getPath());
-            errorRequests++;
-        }
+            if (log.getStatusCode() == 200) existSites.add(log.getPath());
+            if (log.getStatusCode() / 100 == 4 || log.getStatusCode() / 100 == 5) {
+                noExistSites.add(log.getPath());
+                errorRequests++;
+            }
 
-        String operationSystemName = log.getUserAgent().getOperationSystem();
-        if (operationSystemName != null && !operationSystemName.isEmpty()) {
-            if (!operationSystemsFrequency.containsKey(operationSystemName))
-                operationSystemsFrequency.put(operationSystemName, 1);
-            else
-                operationSystemsFrequency.put(operationSystemName, operationSystemsFrequency.get(operationSystemName) + 1);
-        }
+            String operationSystemName = log.getUserAgent().getOperationSystem();
+            if (operationSystemName != null && !operationSystemName.isEmpty()) {
+                if (!operationSystemsFrequency.containsKey(operationSystemName))
+                    operationSystemsFrequency.put(operationSystemName, 1);
+                else
+                    operationSystemsFrequency.put(operationSystemName, operationSystemsFrequency.get(operationSystemName) + 1);
+            }
 
-        String browserName = log.getUserAgent().getBrowser();
-        if (browserName != null && !browserName.isEmpty()) {
-            if (!browsersFrequency.containsKey(browserName))
-                browsersFrequency.put(browserName, 1);
-            else
-                browsersFrequency.put(browserName, browsersFrequency.get(browserName) + 1);
-        }
+            String browserName = log.getUserAgent().getBrowser();
+            if (browserName != null && !browserName.isEmpty()) {
+                if (!browsersFrequency.containsKey(browserName))
+                    browsersFrequency.put(browserName, 1);
+                else
+                    browsersFrequency.put(browserName, browsersFrequency.get(browserName) + 1);
+            }
 
-        if (!log.getUserAgent().isBot()) {
-            usersAreNotBotsCount++;
-            if (log.getIpAddress() != null && !log.getIpAddress().isEmpty())
-                uniqueIpAddressesList.add(log.getIpAddress());
+            if (!log.getUserAgent().isBot()) {
+                usersAreNotBotsCount++;
+                if (log.getIpAddress() != null && !log.getIpAddress().isEmpty())
+                    uniqueIpAddressesList.add(log.getIpAddress());
+            }
         }
     }
 
@@ -128,7 +130,9 @@ public class Statistics {
     }
 
     public BigDecimal getAverageTrafficPerUser() {
-        return new BigDecimal(String.valueOf((double) usersAreNotBotsCount / uniqueIpAddressesList.size()))
+        String result = String.valueOf((double) usersAreNotBotsCount / uniqueIpAddressesList.size());
+        result = result.equals("NaN") || result.equals("Infinity") ? "0" : result;
+        return new BigDecimal(result)
                 .setScale(3, RoundingMode.HALF_UP);
     }
 
@@ -160,6 +164,9 @@ public class Statistics {
 
         valuesMap.forEach((k, v) -> result.put(k, new BigDecimal(String.valueOf((double) v / sumValues))
                 .setScale(scale, RoundingMode.HALF_UP)));
+        if (result.values().stream().reduce(BigDecimal.ZERO, BigDecimal::add).intValue() != 1
+                && sumValues != 0)
+            throw new IllegalArgumentException("Сумма долей не равна 1");
         return result;
     }
 
@@ -200,5 +207,4 @@ public class Statistics {
     public int hashCode() {
         return Objects.hash(totalTraffic, minTime, maxTime);
     }
-
 }
