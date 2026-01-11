@@ -108,9 +108,11 @@ public class Statistics {
                 .stream()
                 .mapToInt(Integer::intValue)
                 .sum();
-
         valuesMap.forEach((k, v) -> result.put(k, new BigDecimal(String.valueOf((double) v / sumValues))
                 .setScale(scale, RoundingMode.HALF_UP)));
+        if (result.values().stream().reduce(BigDecimal.ZERO, BigDecimal::add).intValue() != 1
+                && sumValues != 0)
+            throw new IllegalArgumentException("Сумма долей не равна 1");
         return result;
     }
 
