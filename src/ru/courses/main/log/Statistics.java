@@ -28,32 +28,34 @@ public class Statistics {
     }
 
     public void addEntry(LogEntry log) {
-        this.totalTraffic += log.getDataSize();
-        if (minTime == null && maxTime == null) {
-            minTime = log.getTime();
-            maxTime = log.getTime();
-        } else {
-            if (log.getTime().isBefore(minTime)) minTime = log.getTime();
-            if (log.getTime().isAfter(maxTime)) maxTime = log.getTime();
-        }
+        if (log!= null) {
+            this.totalTraffic += log.getDataSize();
+            if (minTime == null && maxTime == null) {
+                minTime = log.getTime();
+                maxTime = log.getTime();
+            } else {
+                if (log.getTime().isBefore(minTime)) minTime = log.getTime();
+                if (log.getTime().isAfter(maxTime)) maxTime = log.getTime();
+            }
 
-        if (log.getStatusCode() == 200) existSites.add(log.getPath());
-        if (log.getStatusCode() == 404) existSites.add(log.getPath());
+            if (log.getStatusCode() == 200) existSites.add(log.getPath());
+            if (log.getStatusCode() == 404) noExistSites.add(log.getPath());
 
-        String operationSystemName = log.getUserAgent().getOperationSystem();
-        if (operationSystemName != null && !operationSystemName.isEmpty()) {
-            if (!operationSystemsFrequency.containsKey(operationSystemName))
-                operationSystemsFrequency.put(operationSystemName, 1);
-            else
-                operationSystemsFrequency.put(operationSystemName, operationSystemsFrequency.get(operationSystemName) + 1);
-        }
+            String operationSystemName = log.getUserAgent().getOperationSystem();
+            if (operationSystemName != null && !operationSystemName.isEmpty()) {
+                if (!operationSystemsFrequency.containsKey(operationSystemName))
+                    operationSystemsFrequency.put(operationSystemName, 1);
+                else
+                    operationSystemsFrequency.put(operationSystemName, operationSystemsFrequency.get(operationSystemName) + 1);
+            }
 
-        String browserName = log.getUserAgent().getBrowser();
-        if (browserName != null && !browserName.isEmpty()) {
-            if (!browsersFrequency.containsKey(browserName))
-                browsersFrequency.put(browserName, 1);
-            else
-                browsersFrequency.put(browserName, browsersFrequency.get(browserName) + 1);
+            String browserName = log.getUserAgent().getBrowser();
+            if (browserName != null && !browserName.isEmpty()) {
+                if (!browsersFrequency.containsKey(browserName))
+                    browsersFrequency.put(browserName, 1);
+                else
+                    browsersFrequency.put(browserName, browsersFrequency.get(browserName) + 1);
+            }
         }
     }
 

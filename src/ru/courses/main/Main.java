@@ -68,6 +68,8 @@ public class Main {
                                 + (double) googleBotCount / sumLine);
                         System.out.println("Все существующие страницы сайта: " + statistics.getExistSites());
                         System.out.println("Статистика операционных систем: " + statistics.getOperationSystemsFrequency());
+                        System.out.println("Список несуществующих страниц сайта: " + statistics.getNoExistSites());
+                        System.out.println("Статистика браузеров: " + statistics.getBrowsersFrequency());
                     } else System.out.println("Файл пустой");
                 } catch (Exception ex) {
                     ex.printStackTrace();
