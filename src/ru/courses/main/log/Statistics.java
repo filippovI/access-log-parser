@@ -13,6 +13,7 @@ import java.util.regex.Matcher;
 
 import static ru.courses.main.patterns.PatternsForLogParsing.DOMAIN_PATTERN;
 
+
 public class Statistics {
     private long totalTraffic;
     private LocalDateTime minTime;
@@ -152,7 +153,7 @@ public class Statistics {
 
     public BigDecimal getAverageTrafficPerUser() {
         String result = String.valueOf((double) usersAreNotBotsCount / uniqueIpAddressesSet.size());
-        result = result.equals("NaN") || result.equals("Infinity") ? "0": result;
+        result = result.equals("NaN") || result.equals("Infinity") ? "0" : result;
         return new BigDecimal(result)
                 .setScale(3, RoundingMode.HALF_UP);
     }
@@ -192,8 +193,6 @@ public class Statistics {
                 && sumValues != 0)
             throw new IllegalArgumentException("Сумма долей не равна 1");
         return result;
-
-
     }
 
     private <T> int getMaxFromMap(HashMap<T, Integer> map) {

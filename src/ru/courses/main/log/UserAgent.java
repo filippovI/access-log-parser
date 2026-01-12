@@ -8,6 +8,7 @@ import java.util.regex.Matcher;
 
 import static ru.courses.main.patterns.PatternsForLogParsing.*;
 
+
 public class UserAgent {
     private final static Map<String, List<String>> OPERATION_SYSTEMS_MAP = new HashMap<>(Map.of(
             "Linux", List.of("Linux"),
@@ -30,7 +31,6 @@ public class UserAgent {
     public static UserAgent fromString(String userAgent) {
         return new UserAgent(parseOperationSystem(userAgent), parseBrowser(userAgent), parseBot(userAgent));
     }
-
 
     private static String parseOperationSystem(String userAgent) {
         if (userAgent != null && !userAgent.isEmpty()) {

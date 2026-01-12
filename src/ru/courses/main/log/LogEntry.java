@@ -11,13 +11,13 @@ import java.util.regex.Matcher;
 import static ru.courses.main.patterns.PatternsForLogParsing.LOG_PATTERN;
 import static ru.courses.main.patterns.PatternsForLogParsing.TIME_PATTERN;
 
+
 public class LogEntry {
     private final String ipAddress, referer, requestPath;
     private final LocalDateTime time;
     private final HttpMethod requestMethod;
     private final UserAgent userAgent;
     private final int statusCode, dataSize;
-
 
     private LogEntry(String ipAddress, String referer, String requestPath, LocalDateTime time,
                      HttpMethod requestMethod, UserAgent userAgent, int statusCode, int dataSize) {
