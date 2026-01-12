@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
+
 public class Statistics {
     private long totalTraffic;
     private LocalDateTime minTime;
@@ -76,7 +77,7 @@ public class Statistics {
     }
 
     public BigDecimal getTrafficRate() {
-        return getAverage(totalTraffic, 3);
+        return getAveragePerHour(totalTraffic, 3);
     }
 
     public long getTotalTraffic() {
@@ -120,12 +121,12 @@ public class Statistics {
     }
 
     public BigDecimal getAverageOfVisitsPerHour() {
-        return getAverage(usersAreNotBotsCount);
+        return getAveragePerHour(usersAreNotBotsCount);
 
     }
 
     public BigDecimal getAverageErrorRequestsPerHour() {
-        return getAverage(errorRequests);
+        return getAveragePerHour(errorRequests);
 
     }
 
@@ -136,11 +137,11 @@ public class Statistics {
                 .setScale(3, RoundingMode.HALF_UP);
     }
 
-    private BigDecimal getAverage(long data) {
-        return getAverage(data, 3);
+    private BigDecimal getAveragePerHour(long data) {
+        return getAveragePerHour(data, 3);
     }
 
-    private BigDecimal getAverage(long data, int scale) {
+    private BigDecimal getAveragePerHour(long data, int scale) {
         if (minTime == null || maxTime == null) return new BigDecimal("0.0");
         long durationInMinutes = ChronoUnit.MINUTES.between(minTime, maxTime);
         double durationInHours = durationInMinutes / 60.0;
